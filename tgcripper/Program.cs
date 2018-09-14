@@ -146,7 +146,7 @@ namespace TGCPripper
                                 if (args[0] == "ls")
                                 {
                                     string currentLecture = course_name + Path.DirectorySeparatorChar + pos_start.ToString() + " - " + title + "\n" + download_video_url;
-                                    string lsArgs = "-c \"echo '" + currentLecture + "' >> lecture-links.txt\"";
+                                    string lsArgs = "-c \"echo '" + currentLecture + "' >> dls/lecture-links.txt\""; // This line might not work in Windows.
                                     ProcessStartInfo bash_runner = new ProcessStartInfo("bash", lsArgs);
                                     bash_runner.UseShellExecute = false;
                                     var proc = Process.Start(bash_runner);
@@ -154,7 +154,7 @@ namespace TGCPripper
                                 }
                                 else
                                 {
-                                    string eargs = "-s16 -j16 -x16 --file-allocation=none --console-log-level=error -o \"" + Path.DirectorySeparatorChar + course_name + Path.DirectorySeparatorChar + pos_start.ToString() + " - " + title + ".mp4\" " + download_video_url;
+                                    string eargs = "-s16 -j16 -x16 --file-allocation=none --console-log-level=error -o \"" + Path.DirectorySeparatorChar + "dls" + Path.DirectorySeparatorChar + course_name + Path.DirectorySeparatorChar + pos_start.ToString() + " - " + title + ".mp4\" " + download_video_url;
                                     Console.WriteLine(eargs);
                                     ProcessStartInfo start_aria = new ProcessStartInfo(@"aria2c", eargs);
                                     start_aria.UseShellExecute = false;
