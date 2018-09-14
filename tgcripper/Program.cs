@@ -10,6 +10,7 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using DocoptNet;
 
 namespace TGCPripper
 {
@@ -18,6 +19,24 @@ namespace TGCPripper
         static string homePath = ((Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX) ? Environment.GetEnvironmentVariable("HOME") : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%")) + Path.DirectorySeparatorChar;
         static string cookiesPath = homePath + ".tgc-ripper" + Path.DirectorySeparatorChar + "cookies.txt";
         static string listPath = homePath + ".tgc-ripper" + Path.DirectorySeparatorChar + "list.txt";
+
+        private const string usage = @"The Great Courses Plus Ripper, aka tgc-ripper.
+    It is not guaranteed that this tool would work on Windows.
+    You should put cookies.txt and list.txt in ~/.tgc-ripper. Put the links to the course page on each line of list.txt.
+
+    Usage:
+      tgc-ripper [--ls] [--out-dir=<out>]
+      tgc-ripper (-h | --help)
+      tgc-ripper --version
+
+    Options:
+      -h --help          Show this screen.
+      --version          Show version.
+      -o <out> --out-dir=<out>    Output directory [default: dls].
+      -l --ls            The program won't download; The download links of the requested lectures will be written to lecture-links.txt.
+
+    https://github.com/NightMachinary/TGC-Ripper. Forked from https://github.com/alfablac/TGC-Ripper.
+    ";
 
         private static double GetFileSize(string uriPath)
         {
@@ -39,8 +58,9 @@ namespace TGCPripper
 
         private void Ripper(string[] args)
         {
-            Console.WriteLine("Assembly location: " + Path.GetDirectoryName(Assembly.GetEntryAssembly().Location));
-            Console.WriteLine("PWD: " + System.IO.Directory.GetCurrentDirectory());
+            var arguments = new Docopt().Apply(usage, args, version: "tgc-ripper 0.1", exit: true);
+            //Console.WriteLine("Assembly location: " + Path.GetDirectoryName(Assembly.GetEntryAssembly().Location));
+            //Console.WriteLine("PWD: " + System.IO.Directory.GetCurrentDirectory());
             //Console.WriteLine("Args: " + string.Join(",", args));
 
             StringBuilder path = new StringBuilder();
@@ -143,10 +163,10 @@ namespace TGCPripper
                                 course_name = course_name.Replace(":", "");
                                 course_name = course_name.Replace("?", "");
                                 Console.WriteLine("\n\n-----Lecture " + pos_start.ToString() + " of Course " + course_name);
-                                if (args[0] == "ls")
+                                if ((bool)(arguments["--ls"].Value)) //(args.Length >= 1 && args[0] == "ls")
                                 {
                                     string currentLecture = course_name + Path.DirectorySeparatorChar + pos_start.ToString() + " - " + title + "\n" + download_video_url;
-                                    string lsArgs = "-c \"echo '" + currentLecture + "' >> dls/lecture-links.txt\""; // This line might not work in Windows.
+                                    string lsArgs = "-c \"echo '" + currentLecture.Replace("'", "'\\\"'\\\"'") + "' >> " + arguments["--out-dir"].Value + "/lecture-links.txt\""; // This line might not work in Windows.
                                     ProcessStartInfo bash_runner = new ProcessStartInfo("bash", lsArgs);
                                     bash_runner.UseShellExecute = false;
                                     var proc = Process.Start(bash_runner);
@@ -154,7 +174,7 @@ namespace TGCPripper
                                 }
                                 else
                                 {
-                                    string eargs = "-s16 -j16 -x16 --file-allocation=none --console-log-level=error -o \"" + Path.DirectorySeparatorChar + "dls" + Path.DirectorySeparatorChar + course_name + Path.DirectorySeparatorChar + pos_start.ToString() + " - " + title + ".mp4\" " + download_video_url;
+                                    string eargs = "-s16 -j16 -x16 --file-allocation=none --console-log-level=error -o \"" + arguments["--out-dir"].Value + Path.DirectorySeparatorChar + course_name + Path.DirectorySeparatorChar + pos_start.ToString() + " - " + title + ".mp4\" " + download_video_url;
                                     Console.WriteLine(eargs);
                                     ProcessStartInfo start_aria = new ProcessStartInfo(@"aria2c", eargs);
                                     start_aria.UseShellExecute = false;

@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="docopt.net" Version="0.6.1.9" />
     <PackageReference Include="Selenium.WebDriver" Version="3.14.0" />
   </ItemGroup>
 </Project>
